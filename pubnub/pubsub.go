@@ -1,26 +1,12 @@
-package main
+package pubsub
 
 import (
   "fmt"
-//  "os"
-  "net/http"
-  "github.com/gorilla/mux"
+  "os"
   "github.com/joho/godotenv"
-//  "google.golang.org/grpc"
-//  "github.com/amleshkashyap/someGoApp/grpc"
-  "github.com/amleshkashyap/someGoApp/pubnub"
   pubnub "github.com/pubnub/go"
 )
 
-func newRouter() *mux.Router {
-  r := mux.NewRouter()
-  r.HandleFunc("/hello", handler).Methods("GET")
-  r.HandleFunc("/world", publishToPubnubWorld).Methods("GET")
-  r.HandleFunc("/msg", publishToPubnubMsg).Methods("GET")
-  return r
-}
-
-/*
 func setupGlobalConfigs() *pubnub.Config {
   config := pubnub.NewConfig()
   config.SubscribeKey = os.Getenv("pubnub_subscribe")
@@ -31,6 +17,10 @@ func setupGlobalConfigs() *pubnub.Config {
 }
 
 var pubnubHandleIt = func() {
+  env_err := godotenv.Load(".env")
+  if env_err != nil {
+    panic(env_err.Error())
+  }
   configs := setupGlobalConfigs()
   pubnubHandler := pubnub.NewPubNub(configs)
   listener := pubnub.NewListener()
@@ -81,73 +71,4 @@ var pubnubHandleIt = func() {
       Channels([]string{"hello_world_pubnub", "hello_msg_pubnub"}).
       Execute()
   // <-doneConnect
-}
-*/
-
-
-func main() {
-  env_err := godotenv.Load(".env")
-  if env_err != nil {
-    panic(env_err.Error())
-  }
-  fmt.Println("Starting the Pubnub Listener")
-  pubnubHandleIt()
-  // The router is now formed by calling the `newRouter` constructor function
-  // that we defined above. The rest of the code stays the same
-  r := newRouter()
-  fmt.Println("Starting Server at localhost:8080")
-  err := http.ListenAndServe(":8080", r)
-  if err != nil {
-    panic(err.Error())
-  }
-}
-
-func handler(w http.ResponseWriter, r *http.Request) {
-  fmt.Fprintf(w, "Hello World! From Golang")
-}
-
-func publishToPubnubWorld(w http.ResponseWriter, r *http.Request) {
-  configs := setupGlobalConfigs()
-  pubnubHandler := pubnub.NewPubNub(configs)
-
-  message := "Hello world from Pubnub via WORLD route"
-
-  msg := map[string]interface{}{
-    "msg": message,
-  }
-
-  // fmt.Println("Now Trying To Publish In WORLD Route")
-
-  response, status, err := pubnubHandler.Publish().
-    Channel("hello_world_pubnub").Message(msg).Execute()
-
-  if err != nil {
-     // Request processing failed.
-     // Handle message publish error
-  }
-  _, _ = response, status
-  // fmt.Println(response, status, err)
-}
-
-func publishToPubnubMsg(w http.ResponseWriter, r *http.Request) {
-  configs := setupGlobalConfigs()
-  pubnubHandler := pubnub.NewPubNub(configs)
-
-  message := "Hello world from Pubnub via MSG route"
-
-  msg := map[string]interface{}{
-    "msg": message,
-  }
-
-  // fmt.Println("Now Trying To Publish In MSG Route")
-
-  response, status, err := pubnubHandler.Publish().
-    Channel("hello_msg_pubnub").Message(msg).Execute()
-
-  if err != nil {
-     // Request processing failed.
-     // Handle message publish error
-  }
-  _, _ = response, status
-  // fmt.Println(response, status, err)
 }
