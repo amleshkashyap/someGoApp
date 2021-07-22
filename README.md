@@ -1,11 +1,17 @@
 ### Description and Stuff
-  * This app, for now, simply exposes 3 endpoints, 1 for HTTP and 2 for publishing to pubnub.
   * Basic web app in Golang which connects to pubnub.
     - it's recommended to use less files, and if files are using from other files, create project in GOROOT for easy import via package name.
     - SDK for pubnub/go is [here](https://github.com/pubnub/go)
+  * This app, for now, simply exposes 5 endpoints, 1 for HTTP, 2 for publishing to pubnub and 2 for dialing to gRPC.
   * Create an account on pubnub and get the free API keys.
     - store them in a .env file, use the godotenv package (node's dotenv) to load the keys in "os"
-  * Adding multiple communication channels to this application - HTTP, gRPC, Pubnub (whatever it uses internally), Web Socket, HTTP/2
+  * Adding multiple communication channels to this application
+    - Pubnub - it might be using any protocol internally, ranging from websockets, MQTT, etc - depending on the product
+    - Websocket - yet to add, from [here](https://github.com/gorilla/websocket/tree/master/examples/autobahn)
+    - gRPC - basic client message sending - can be easily extended to send custom messages to the server
+    - HTTP - this is basically working as a client now - gRPC/pubnub clients are created for sending messages in HTTP endpoints
+    - HTTP/2 - yet to add
+  *  More notes on protocols - HTTP, gRPC, Pubnub (whatever it uses internally), Web Socket, HTTP/2
     - Typically, the websocket is used for pushing from server to client - from client to server, we've HTTP - but can use the same channel
     - HTTP/2 and gRPC are also dual channel so can be used just like websockets. gRPC isn't implemented by any browsers though so only option is cmd clients.
     - Try to benchmark performances of various protocols?
@@ -14,7 +20,7 @@
       and the receiver will then read from that. Although how exactly this data is passed remains mysterious if we're working only via HTTP protocols (eg, REST APIs).
     - As already mentioned, the closer the communicating components are, the more prevalent this mechanism becomes when studying that communication.
     - Unix domain sockets can be like key-value pairs, where one process can store the data it wants with some kind of id for the processes that can consume it. Then,
-      the other process can consume that data later - this is facilitated through OS.
+      the other process can consume that data later - this is facilitated through OS??
     - Unfortunately, with growing distances, one must face the following issues - 
       1. Data sizes need to be preferably small - other layers for the communication protocol will add their own metadata - efficient compression.
       2. It should be easy to specify the structure of data, if it exists, and then easy to fill that structure before sending.
@@ -41,6 +47,7 @@
          - unique index within that message structure - this isn't the value since we're talking about specification
          - field rules - (a) required, (b) optional - can have default values, (c) repeated
          - reserve - for future compatibility, make sure no one can change certain indices/variable_names
+         - int32/int kind of type conversions have to be very carefully handled since golang is strongly typed
       2. messages can be nested. specifications can be imported from other specification files.
       3. Huge set of rules for updating message structure to maintain comptability.
       4. Extensions - reserve indices to be extended by other users (assuming the message is created via multiple modules of the repo)
@@ -51,9 +58,14 @@
       8. Generating the actual code - all of the above specification will generate a bunch of Interfaces (for client/server with methods specified in Services)
 
 #### Setup, Execution
-  * Just download and do "go run main.go"
-  * Definitely create a .env file which has 3 key-values for the pubnub keys.
-  * curl -X GET localhost:8080/[world - for publishing to a channel, msg - for publishing to another channel, hello - some http message response]
+  * Just download and do "go run main.go" - let's say this is done in Console.
+  * Definitely create a .env file which has 3 key-values for the pubnub keys. and some other key values for http/gRPC ports, unique nums, etc
+  * curl -X GET localhost:8080 - and any of the below endpoints
+    - /hello - some dummy http response
+    - /pubnub/world - publishes to a channel "hello\_world\_pubnub" - a listener will respond to this on Console
+    - /pubnub/msg - publishes to a channel "hello\_msg\_pubnub" - a listener will respond to this on Console
+    - /grpc/world - dials to the gRPC server and calls the service "ChatSender" - gRPC server will respond accordingly on Console
+    - /grpc/msg - dials to the gRPC server and calls the service "ChatListener" - gRPC server will respond accordingly on Console
 
 #### Models, Routes
-  * Just the above 3 routes for now.
+  * Just the above 5 routes for now.

@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package chatgrpc;
+
+service ChatterInterface {
+  rpc ChatSender (Msg) returns (Status) {};
+  rpc ChatListener (Msg) returns (Status) {};
+};
+
+
+message Msg {
+  string msg = 1;
+  string timestamp = 2;
+  int32 unique_num = 3;
+};
+
+message Status {
+  bool status = 1;
+  string timestamp = 2;
+  int32 unique_num = 3;
+};
+
+option go_package = "github.com/amleshkashyap/simpleGoApp/chatgrpc;chatgrpc";

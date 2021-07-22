@@ -7,21 +7,22 @@ import (
   pubnub "github.com/pubnub/go"
 )
 
-func setupGlobalConfigs() *pubnub.Config {
+// use upper case first letter of function name to export it - truly concise!
+func SetupGlobalConfigs() *pubnub.Config {
   config := pubnub.NewConfig()
   config.SubscribeKey = os.Getenv("pubnub_subscribe")
   config.PublishKey = os.Getenv("pubnub_publish")
   config.SecretKey = os.Getenv("pubnub_secret")
-  config.UUID = "bbf80b36-d536-4297-b956-44f21ef206a3"
+  config.UUID = os.Getenv("pubnub_uuid")
   return config
 }
 
-var pubnubHandleIt = func() {
+var PubnubListener = func() {
   env_err := godotenv.Load(".env")
   if env_err != nil {
     panic(env_err.Error())
   }
-  configs := setupGlobalConfigs()
+  configs := SetupGlobalConfigs()
   pubnubHandler := pubnub.NewPubNub(configs)
   listener := pubnub.NewListener()
   // doneConnect := make(chan bool)
